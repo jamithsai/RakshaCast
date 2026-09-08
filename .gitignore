@@ -1,0 +1,35 @@
+# Android / Gradle
+.gradle/
+build/
+**/build/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Local Android configuration / secrets
+local.properties
+secrets.properties
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# MOSDAC / large data files
+*.h5
+*.hdf
+*.hdf5
+
+# ML generated artifacts
+backend/artifacts/
+
+# Large archives
+*.zip
+
+# OS files
+.DS_Store
+Thumbs.db
+# Local Gradle distribution
+gradle-9.6.0/

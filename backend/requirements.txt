@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+h5py
+numpy
+pandas
+pytest
+scikit-learn
+xgboost
