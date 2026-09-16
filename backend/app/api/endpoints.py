@@ -1,3 +1,4 @@
+from app.services.notification_service import register_token, test_notification, FCMRegistrationRequest, reset_cooldown
 from fastapi import APIRouter, Query
 from typing import List, Optional
 from app.schemas.api_models import (
@@ -145,3 +146,20 @@ def get_extracted_features():
         )
     ]
     return extractor.extract_features({}, {}, {}, metadata)
+
+@router.post("/notifications/register")
+def register_fcm_token(request: FCMRegistrationRequest):
+    register_token(request.token)
+    return {"status": "success", "message": "Token registered successfully"}
+
+@router.post("/notifications/test")
+def test_fcm_notification():
+    """Test endpoint to trigger a demo FCM notification."""
+    result = test_notification()
+    return result
+
+@router.post("/notifications/reset")
+def reset_fcm_cooldown():
+    """Reset the deduplication cooldown state for testing."""
+    reset_cooldown()
+    return {"status": "success", "message": "Cooldown state reset"}

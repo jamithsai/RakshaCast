@@ -7,6 +7,9 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface RakshaCastApiService {
+    @retrofit2.http.POST("api/v1/notifications/register")
+    suspend fun registerFcmToken(@retrofit2.http.Body request: Map<String, String>): retrofit2.Response<Unit>
+
     @GET("api/v1/risk/current")
     suspend fun getCurrentRisk(): WeatherRisk
 

@@ -1,4 +1,4 @@
-package com.rakshacast.model
+﻿package com.rakshacast.model
 
 import com.google.gson.annotations.SerializedName
 
@@ -36,7 +36,9 @@ data class Alert(
     val message: String,
     val explanationFactors: List<RiskFactor>,
     val recommendedActions: List<String>,
-    val isRead: Boolean
+    val isRead: Boolean,
+    val modelVersion: String? = null,
+    val prototypeFlag: Boolean = true
 )
 
 enum class RiskTrend {
@@ -64,7 +66,9 @@ data class WeatherRisk(
     val explanationFactors: List<RiskFactor>,
     val indicators: WeatherIndicators,
     val forecastTimeline: List<ForecastPoint>,
-    val activeAlerts: List<Alert>
+    val activeAlerts: List<Alert>,
+    val modelVersion: String? = null,
+    val prototypeFlag: Boolean = true
 )
 
 enum class ShelterStatus {
@@ -145,4 +149,5 @@ data class RiskPrediction(
     val prototypeFlag: Boolean = true,
     val model_version: String
 )
+
 

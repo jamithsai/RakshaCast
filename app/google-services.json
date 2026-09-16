@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "380721967689",
+    "project_id": "rakshacast-prototype",
+    "storage_bucket": "rakshacast-prototype.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:380721967689:android:91f96d2a56068590b64598",
+        "android_client_info": {
+          "package_name": "com.rakshacast"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_naVHumT_2BKwtcj0wvLNBFYJQ7K1AN0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

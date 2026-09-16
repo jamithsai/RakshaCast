@@ -1,4 +1,4 @@
-package com.rakshacast.repository
+﻿package com.rakshacast.repository
 
 import com.rakshacast.model.*
 import com.rakshacast.network.ApiClient
@@ -19,7 +19,9 @@ class RemoteRepository : AppRepository {
                 val updatedRisk = baseResponse.copy(
                     probability = mlResponse.probability,
                     overallRisk = RiskLevel.valueOf(mlResponse.riskLevel),
-                    explanationFactors = mlResponse.explanationFactors
+                    explanationFactors = mlResponse.explanationFactors,
+                    modelVersion = mlResponse.model_version,
+                    prototypeFlag = mlResponse.prototypeFlag
                 )
                 emit(Result.success(updatedRisk))
             } else {
@@ -75,3 +77,4 @@ class RemoteRepository : AppRepository {
         }
     }
 }
+

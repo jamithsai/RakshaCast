@@ -3,6 +3,7 @@ from typing import List, Optional
 from app.schemas.ml_models import RiskPrediction
 from app.schemas.data_models import WeatherFeatureRecord
 from app.ml.inference import InferenceService
+from app.services.notification_service import evaluate_and_push
 import datetime
 
 router = APIRouter()
@@ -17,6 +18,8 @@ def get_prediction(records: List[WeatherFeatureRecord], hazard: str, forecastHou
         
     try:
         predictions = inference_service.predict(records, hazard, forecastHour)
+        # Push notification evaluation
+        evaluate_and_push(predictions)
         return predictions
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -47,4 +50,7 @@ def get_demo_prediction(hazard: str = "THUNDERSTORM"):
         source_metadata=[]
     )
     
-    return inference_service.predict([record], hazard, forecast_hour=2)
+    predictions = inference_service.predict([record], hazard, forecast_hour=2)
+    # Push notification evaluation
+    evaluate_and_push(predictions)
+    return predictions

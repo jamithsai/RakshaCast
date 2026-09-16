@@ -1,7 +1,6 @@
 package com.rakshacast.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,139 +12,58 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.rakshacast.model.*
-import com.rakshacast.ui.theme.getColor
+import com.rakshacast.ui.components.*
+import com.rakshacast.ui.theme.*
 import com.rakshacast.viewmodel.MainViewModel
 
 @Composable
 fun HomeScreen(viewModel: MainViewModel, onNavigateToMap: () -> Unit) {
     val location by viewModel.currentLocation.collectAsState()
     val weatherRisk by viewModel.weatherRisk.collectAsState()
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(vertical = 16.dp)
-    ) {
-        item {
-            LocationHeader(location)
-        }
-
-        weatherRisk?.let { risk ->
-            item {
-                RiskSummarySection(risk)
-            }
-            item {
-                ForecastTimeline(risk.forecastTimeline)
-            }
-            item {
-                RiskExplanationSection(risk.explanationFactors)
-            }
-            item {
-                CurrentConditionsSection(risk.indicators)
-            }
-            if (risk.activeAlerts.isNotEmpty()) {
+    
+    Column(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
+        RakshaCastHeader(
+            title = "Severe Weather Intelligence",
+            showLocation = true,
+            locationText = location.name
+        )
+        
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            weatherRisk?.let { risk ->
                 item {
-                    ActiveAlertCard(risk.activeAlerts.first())
+                    RiskSummarySection(risk, viewModel, onNavigateToMap)
                 }
-            }
-            item {
-                Button(
-                    onClick = onNavigateToMap,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1E3A8A), // Deep institutional blue
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
-                    Text("View Risk Map", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                item {
+                    WeatherIndicatorsGrid(risk.indicators)
                 }
-            }
-        } ?: item {
-            Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-    }
-}
-
-@Composable
-fun LocationHeader(location: Location) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text("RAKSHACAST", style = MaterialTheme.typography.titleSmall, color = Color.Gray, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-        Text("Hyper-Local Severe Weather Early Warning System", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
-        Spacer(modifier = Modifier.height(12.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.LocationOn, contentDescription = "Location", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(location.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-        }
-        Divider(modifier = Modifier.padding(top = 16.dp), color = Color.LightGray)
-    }
-}
-
-@Composable
-fun RiskSummarySection(risk: WeatherRisk) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text("OVERALL RISK", style = MaterialTheme.typography.labelMedium, color = Color.Gray, fontWeight = FontWeight.Bold)
-                    Text(risk.overallRisk.name, style = MaterialTheme.typography.headlineMedium, color = risk.overallRisk.getColor(), fontWeight = FontWeight.ExtraBold)
+                item {
+                    ForecastTimeline(risk.forecastTimeline)
                 }
-                Box(
-                    modifier = Modifier
-                        .background(risk.overallRisk.getColor().copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    Icon(Icons.Default.Warning, contentDescription = null, tint = risk.overallRisk.getColor(), modifier = Modifier.size(32.dp))
+                item {
+                    RiskExplanationSection(risk.explanationFactors)
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                RiskDetailItem(label = "Primary Hazard", value = risk.primaryHazard)
-                RiskDetailItem(label = "Probability", value = "${risk.probability}%", alignment = Alignment.End)
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            RiskDetailItem(label = "Forecast Window", value = risk.predictionWindow)
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF3F4F6), RoundedCornerShape(4.dp))
-                    .padding(12.dp)
-            ) {
-                Text(
-                    "Conditions indicate an elevated probability of ${risk.primaryHazard.lowercase()} development.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.DarkGray
+                
+                if (risk.activeAlerts.isNotEmpty()) {
+                    item {
+                        ActiveWarnings(risk.activeAlerts)
+                    }
+                }
+                
+                item {
+                    PrototypeTransparencyFooter()
+                }
+            } ?: item {
+                CircularProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally).padding(32.dp),
+                    color = NavyPrimary
                 )
             }
         }
@@ -153,37 +71,147 @@ fun RiskSummarySection(risk: WeatherRisk) {
 }
 
 @Composable
-fun RiskDetailItem(label: String, value: String, alignment: Alignment.Horizontal = Alignment.Start) {
-    Column(horizontalAlignment = alignment) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-        Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+fun RiskSummarySection(risk: WeatherRisk, viewModel: MainViewModel, onNavigateToMap: () -> Unit) {
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val networkStatus by viewModel.networkStatus.collectAsState()
+    
+    RakshaCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column {
+                Text(
+                    text = "CURRENT RISK",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NeutralGrey,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                StatusBadge(text = risk.overallRisk.name, color = getSeverityColor(risk.overallRisk))
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "${risk.probability}%",
+                    style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.Bold),
+                    color = getSeverityColor(risk.overallRisk)
+                )
+                Text(
+                    text = "MODEL PROBABILITY",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NeutralGrey
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = risk.primaryHazard,
+            style = MaterialTheme.typography.headlineMedium,
+            color = DarkCharcoal
+        )
+        Text(
+            text = risk.predictionWindow,
+            style = MaterialTheme.typography.titleLarge,
+            color = NavyPrimary
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(color = BackgroundLight)
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Column {
+                Text("Risk: ${viewModel.getRiskTrendText()}", style = MaterialTheme.typography.bodyMedium, color = DarkCharcoal)
+                Text(viewModel.getLastUpdatedText(), style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                val freshnessColor = if (viewModel.getDataFreshness() == "Stale") StatusSevere else NavyPrimary
+                Text("Data status: ${viewModel.getDataFreshness()}", style = MaterialTheme.typography.bodyMedium, color = freshnessColor)
+                Text("Model: ${risk.modelVersion ?: "XGBoost baseline v1.0"}", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
+            }
+        }
+        
+        if (isRefreshing || networkStatus != "ONLINE") {
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (isRefreshing) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), color = NavyPrimary, strokeWidth = 2.dp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Updating risk assessment...", style = MaterialTheme.typography.labelSmall, color = NavyPrimary)
+                } else if (networkStatus != "ONLINE") {
+                    Icon(Icons.Default.WifiOff, contentDescription = null, tint = StatusSevere, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(networkStatus, style = MaterialTheme.typography.labelSmall, color = StatusSevere)
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Button(
+            onClick = onNavigateToMap,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = NavyPrimary),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("View Interactive Map")
+        }
+    }
+}
+
+@Composable
+fun WeatherIndicatorsGrid(indicators: WeatherIndicators) {
+    RakshaCard {
+        Text("METEOROLOGICAL INDICATORS", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            IndicatorItem("RAIN", "${indicators.rainfallMmHr} mm/hr", WeatherRain, Icons.Default.WaterDrop)
+            IndicatorItem("TEMP", "${indicators.temperatureC}Â°C", WeatherTemp, Icons.Default.Thermostat)
+            IndicatorItem("MOISTURE", indicators.moistureLevel, WeatherMoisture, Icons.Default.Opacity)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            IndicatorItem("INSTABILITY", indicators.instability, WeatherInstability, Icons.Default.Warning)
+            IndicatorItem("CLOUD", indicators.cloudCondition, WeatherCloud, Icons.Default.FilterDrama)
+        }
+    }
+}
+
+@Composable
+fun IndicatorItem(label: String, value: String, color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(value, style = MaterialTheme.typography.titleLarge, color = DarkCharcoal, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MutedText)
     }
 }
 
 @Composable
 fun ForecastTimeline(timeline: List<ForecastPoint>) {
-    SectionHeader("Forecast Timeline (2-6 Hours)")
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
+    RakshaCard {
+        Text("FORECAST TIMELINE", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
+        Spacer(modifier = Modifier.height(16.dp))
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             timeline.forEach { point ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(point.timeLabel, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text(point.timeLabel, style = MaterialTheme.typography.labelSmall, color = MutedText)
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
                         modifier = Modifier
                             .size(16.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(point.riskLevel.getColor())
+                            .background(
+                                color = getSeverityColor(point.riskLevel),
+                                shape = RoundedCornerShape(8.dp)
+                            )
                     )
                 }
             }
@@ -193,80 +221,69 @@ fun ForecastTimeline(timeline: List<ForecastPoint>) {
 
 @Composable
 fun RiskExplanationSection(factors: List<RiskFactor>) {
-    com.rakshacast.ui.components.ExplainableRiskPanel(factors = factors)
-}
-
-@Composable
-fun CurrentConditionsSection(indicators: WeatherIndicators) {
-    SectionHeader("Current Conditions")
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            ConditionIndicator("Rainfall", "${indicators.rainfallMmHr} mm/hr", Icons.Default.WaterDrop, Modifier.weight(1f))
-            ConditionIndicator("Temperature", "${indicators.temperatureC}°C", Icons.Default.Thermostat, Modifier.weight(1f))
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            ConditionIndicator("Moisture", indicators.moistureLevel, Icons.Default.Cloud, Modifier.weight(1f))
-            ConditionIndicator("Instability", indicators.instability, Icons.Default.Air, Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-fun ConditionIndicator(title: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, contentDescription = null, tint = Color(0xFF6B7280), modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(title, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-            }
-        }
-    }
-}
-
-@Composable
-fun ActiveAlertCard(alert: Alert) {
-    SectionHeader("Active Warning")
-    Card(
-        modifier = Modifier.fillMaxWidth().border(1.dp, alert.severity.getColor(), RoundedCornerShape(8.dp)),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = alert.severity.getColor().copy(alpha = 0.05f))
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.width(6.dp).height(120.dp).background(alert.severity.getColor()))
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.WarningAmber, contentDescription = null, tint = alert.severity.getColor(), modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("SEVERE WEATHER ALERT", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = alert.severity.getColor(), letterSpacing = 1.sp)
+    RakshaCard {
+        Text("WHY IS THE RISK HIGH?", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
+        Spacer(modifier = Modifier.height(12.dp))
+        factors.forEach { factor ->
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.Top) {
+                val color = if (factor.status.contains("ELEVATED", true) || factor.status.contains("HIGH", true)) WeatherInstability else WeatherRain
+                StatusBadge(text = factor.status, color = color, modifier = Modifier.width(100.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(factor.factor, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                        Text(factor.trend.name, style = MaterialTheme.typography.labelSmall, color = NavyPrimary)
+                    }
+                    Text(factor.explanation, style = MaterialTheme.typography.bodyMedium, color = MutedText, modifier = Modifier.padding(top = 4.dp))
+                    Text("Importance: ${factor.importance}", style = MaterialTheme.typography.labelSmall, color = NeutralGrey, modifier = Modifier.padding(top = 4.dp))
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(alert.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Expected: ${alert.expectedTimeframe}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Action: Avoid unnecessary travel and exposed areas.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
+            }
+            HorizontalDivider(color = BackgroundLight)
+        }
+    }
+}
+
+@Composable
+fun ActiveWarnings(alerts: List<Alert>) {
+    Column {
+        alerts.forEach { alert ->
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF5F5)), // Very light red
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = StatusSevere, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("ACTIVE WARNING", style = MaterialTheme.typography.labelSmall, color = StatusSevere, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(alert.hazard, style = MaterialTheme.typography.titleLarge, color = DarkCharcoal)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Expected: ${alert.expectedTimeframe}", style = MaterialTheme.typography.bodyMedium, color = StatusSevere)
+                    Text(alert.message, style = MaterialTheme.typography.bodyMedium, color = DarkCharcoal, modifier = Modifier.padding(top = 4.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-fun SectionHeader(title: String) {
-    Text(
-        text = title.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF4B5563),
-        letterSpacing = 1.sp,
-        modifier = Modifier.padding(bottom = 4.dp, top = 8.dp)
-    )
+fun PrototypeTransparencyFooter() {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Default.Info, contentDescription = null, tint = NeutralGrey, modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            "Prototype assessment based on simulated risk indicators",
+            style = MaterialTheme.typography.labelSmall,
+            color = NeutralGrey
+        )
+    }
 }
+
+

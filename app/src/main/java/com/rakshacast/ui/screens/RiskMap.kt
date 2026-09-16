@@ -30,7 +30,8 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.rakshacast.model.RiskLevel
 import com.rakshacast.model.RiskZone
-import com.rakshacast.ui.theme.getColor
+import com.rakshacast.ui.theme.*
+import com.rakshacast.ui.components.*
 import com.rakshacast.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
@@ -159,7 +160,7 @@ fun RiskMapScreen(viewModel: MainViewModel) {
                     val polygon = Polygon()
                     polygon.points = Polygon.pointsAsCircle(center, zone.radiusKm * 1000.0)
                     
-                    val composeColor = zone.riskLevel.getColor()
+                    val composeColor = getSeverityColor(zone.riskLevel)
                     val androidColor = android.graphics.Color.argb(
                         255,
                         (composeColor.red * 255).toInt(),
@@ -204,7 +205,8 @@ fun RiskMapScreen(viewModel: MainViewModel) {
                 .padding(end = 16.dp),
             onRecenter = {
                 val target = userLocation ?: defaultDemoLocation
-                mapRef?.controller?.animateTo(target, 10.0, 500L)
+                val currentZoom = mapRef?.zoomLevelDouble ?: 10.0
+                mapRef?.controller?.animateTo(target, maxOf(currentZoom, 12.0), 500L)
             }
         )
 
@@ -245,7 +247,7 @@ fun MapControlsCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text("Hazard Filter", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text("Hazard Filter", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
             Spacer(modifier = Modifier.height(4.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(hazards) { hazard ->
@@ -255,7 +257,7 @@ fun MapControlsCard(
                         label = { Text(hazard, style = MaterialTheme.typography.bodySmall) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Color(0xFF1E3A8A),
-                            selectedLabelColor = Color.White
+                            selectedLabelColor = SurfaceWhite
                         )
                     )
                 }
@@ -263,7 +265,7 @@ fun MapControlsCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text("Forecast Horizon", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text("Forecast Horizon", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
             Spacer(modifier = Modifier.height(4.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(forecastLabels.keys.toList()) { hour ->
@@ -273,7 +275,7 @@ fun MapControlsCard(
                         label = { Text(forecastLabels[hour]!!, style = MaterialTheme.typography.bodySmall) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Color(0xFF047857),
-                            selectedLabelColor = Color.White
+                            selectedLabelColor = SurfaceWhite
                         )
                     )
                 }
@@ -309,16 +311,16 @@ fun MapLegend(modifier: Modifier = Modifier) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text("RISK LEVEL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.Gray, letterSpacing = 1.sp)
+            Text("RISK LEVEL", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = NeutralGrey, letterSpacing = 1.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            LegendItemRow("Low", RiskLevel.LOW.getColor())
-            LegendItemRow("Moderate", RiskLevel.MODERATE.getColor())
-            LegendItemRow("High", RiskLevel.HIGH.getColor())
-            LegendItemRow("Severe", RiskLevel.SEVERE.getColor())
-            LegendItemRow("Extreme", RiskLevel.EXTREME.getColor())
+            LegendItemRow("Low", getSeverityColor(RiskLevel.LOW))
+            LegendItemRow("Moderate", getSeverityColor(RiskLevel.MODERATE))
+            LegendItemRow("High", getSeverityColor(RiskLevel.HIGH))
+            LegendItemRow("Severe", getSeverityColor(RiskLevel.SEVERE))
+            LegendItemRow("Extreme", getSeverityColor(RiskLevel.EXTREME))
             Spacer(modifier = Modifier.height(8.dp))
-            Text("PROTOTYPE DEMO DATA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
-            Text("© OpenStreetMap contributors", style = MaterialTheme.typography.labelSmall, color = Color.Gray, fontSize = 9.sp)
+            Text("PROTOTYPE DEMO DATA", style = MaterialTheme.typography.labelSmall, color = StatusSevere)
+            Text("Â© OpenStreetMap contributors", style = MaterialTheme.typography.labelSmall, color = NeutralGrey, fontSize = 9.sp)
         }
     }
 }
@@ -358,13 +360,13 @@ fun SelectedZonePanel(zone: RiskZone, userLocation: GeoPoint?, onClose: () -> Un
                 Column {
                     Text(zone.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
-                        Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(zone.riskLevel.getColor()))
+                        Box(modifier = Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(getSeverityColor(zone.riskLevel)))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("${zone.hazard} - ${zone.riskLevel.name}", style = MaterialTheme.typography.labelMedium, color = zone.riskLevel.getColor(), fontWeight = FontWeight.Bold)
+                        Text("${zone.hazard} - ${zone.riskLevel.name}", style = MaterialTheme.typography.labelMedium, color = getSeverityColor(zone.riskLevel), fontWeight = FontWeight.Bold)
                     }
                 }
                 IconButton(onClick = onClose, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Gray)
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = NeutralGrey)
                 }
             }
 
@@ -372,11 +374,11 @@ fun SelectedZonePanel(zone: RiskZone, userLocation: GeoPoint?, onClose: () -> Un
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("Probability", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("Probability", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
                     Text("${zone.probability}%", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Expected Window", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("Expected Window", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
                     Text(zone.expectedWindow, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                 }
             }
@@ -385,15 +387,15 @@ fun SelectedZonePanel(zone: RiskZone, userLocation: GeoPoint?, onClose: () -> Un
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("Radius", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("Radius", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
                     Text("${zone.radiusKm} km", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Approx. affected area", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                    Text("$formattedArea km²", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                    Text("Approx. affected area", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
+                    Text("$formattedArea kmÂ²", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Distance", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("Distance", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
                     Text(distanceText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                 }
             }
@@ -402,7 +404,7 @@ fun SelectedZonePanel(zone: RiskZone, userLocation: GeoPoint?, onClose: () -> Un
             com.rakshacast.ui.components.ExplainableRiskPanel(factors = zone.explanationFactors)
             
             Spacer(modifier = Modifier.height(8.dp))
-            Text("PROTOTYPE ZONE - Not an official warning", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text("PROTOTYPE ZONE - Not an official warning", style = MaterialTheme.typography.labelSmall, color = NeutralGrey)
         }
     }
 }

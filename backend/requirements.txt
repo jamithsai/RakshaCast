@@ -8,3 +8,4 @@ pandas
 pytest
 scikit-learn
 xgboost
+firebase-admin

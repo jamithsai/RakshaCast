@@ -5,7 +5,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class MockRepository : AppRepository {
+class MockRepository(val scenario: String = "Severe Thunderstorm") : AppRepository {
     private val hyderabad = Location("Hyderabad, Telangana", 17.3850, 78.4867)
     private val hills = Location("Munnar, Kerala", 10.0889, 77.0595)
 
